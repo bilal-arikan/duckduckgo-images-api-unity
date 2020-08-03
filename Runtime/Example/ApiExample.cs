@@ -22,17 +22,26 @@ public class ApiExample : MonoBehaviour
         foreach (Transform child in ResultsLayout.transform)
             Destroy(child.gameObject);
 
-        Debug.Log("Searching", this);
+        Debug.Log($"Searching : {SearchInput.text}", this);
 
         SearchButton.interactable = false;
         Arikan.Duckduckgo.Api.Images.Search(SearchInput.text, 1, (result) =>
         {
             SearchButton.interactable = true;
+
+            if (result == null)
+            {
+                Debug.LogError("Result Null", this);
+                return;
+            }
+
             Debug.Log(JsonUtility.ToJson(result.results[0], true), this);
             foreach (var item in result.results.Take(12))
             {
                 var image = Instantiate(ResultImagePrefab, ResultsLayout.transform);
+                // image.texture = HttpWebRequest.GetTexture(item.thumbnail);
             }
         });
     }
+
 }

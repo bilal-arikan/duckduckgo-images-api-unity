@@ -15,7 +15,7 @@ namespace Arikan.Duckduckgo.Api
         private static Images instance;
 
         private const string url = "https://duckduckgo.com/";
-        private string currentToken = null; // "3-303624948724554003560379222523657157514-88895724275933766665141839412464435395";
+        private KeyValuePair<string, string> lastSearch; // keyword : token
         private bool isLastRequestSuccessfull;
         private readonly Dictionary<string, string> headers = new Dictionary<string, string>(){
             {"authority", "duckduckgo.com"},
@@ -47,12 +47,15 @@ namespace Arikan.Duckduckgo.Api
         }
         private IEnumerator SearchCoRo(string keyword, int page, Action<ImageSearchResult> onCompleted)
         {
-            if (string.IsNullOrWhiteSpace(currentToken) || !isLastRequestSuccessfull)
+            string token = lastSearch.Value;
+            if (lastSearch.Key != keyword)
             {
-                yield return RequestToken(keyword, (token) => currentToken = token);
+                yield return RequestToken(keyword, (t) => token = t);
+                lastSearch = new KeyValuePair<string, string>(keyword, token);
             }
+
             // Debug.Log("SrcOb:" + currentToken);
-            yield return RequestSearchResult(keyword, currentToken, page, onCompleted);
+            yield return RequestSearchResult(keyword, token, page, onCompleted);
         }
 
         private IEnumerator RequestToken(string keyword, Action<string> tokenCallback)
@@ -85,7 +88,7 @@ namespace Arikan.Duckduckgo.Api
                 {"l", "us-en"},
                 {"o", "json"},
                 {"q", keyword},
-                {"vqd", currentToken},
+                {"vqd", token},
                 {"f", ",,,"},
                 {"p", "1"},
                 {"v7exp", "a"},
@@ -107,9 +110,11 @@ namespace Arikan.Duckduckgo.Api
             if (ao.webRequest.isNetworkError || ao.webRequest.isHttpError)
             {
                 Debug.LogError("Searching Failed ! " + ao.webRequest.error);
+                isLastRequestSuccessfull = false;
                 callback.Invoke(null);
                 yield break;
             }
+            isLastRequestSuccessfull = true;
 
             // Debug.Log(ao.webRequest.downloadHandler.text);
             var result = JsonUtility.FromJson<ImageSearchResult>(ao.webRequest.downloadHandler.text);
