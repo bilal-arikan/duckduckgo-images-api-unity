@@ -1,16 +1,17 @@
-﻿using System.Net;
-using System.Linq;
+﻿using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Networking;
 
 public class ApiExample : MonoBehaviour
 {
+    public int MaxResultCount = 15;
     public InputField SearchInput;
     public Button SearchButton;
     public LayoutGroup ResultsLayout;
-    public Image ResultImagePrefab;
+    public RawImage ResultImagePrefab;
 
     private void Start()
     {
@@ -21,11 +22,12 @@ public class ApiExample : MonoBehaviour
     {
         foreach (Transform child in ResultsLayout.transform)
             Destroy(child.gameObject);
+        Resources.UnloadUnusedAssets();
 
         Debug.Log($"Searching : {SearchInput.text}", this);
 
         SearchButton.interactable = false;
-        Arikan.Duckduckgo.Api.Images.Search(SearchInput.text, 1, (result) =>
+        Arikan.Duckduckgo.Api.ImagesApi.Search(SearchInput.text, 1, (result) =>
         {
             SearchButton.interactable = true;
 
@@ -36,10 +38,18 @@ public class ApiExample : MonoBehaviour
             }
 
             Debug.Log(JsonUtility.ToJson(result.results[0], true), this);
-            foreach (var item in result.results.Take(12))
+            foreach (var item in result.results.Take(MaxResultCount))
             {
-                var image = Instantiate(ResultImagePrefab, ResultsLayout.transform);
-                // image.texture = HttpWebRequest.GetTexture(item.thumbnail);
+                var request = UnityWebRequestTexture.GetTexture(item.thumbnail).SendWebRequest();
+                request.completed +=
+                (ao) =>
+                {
+                    if (ao.isDone)
+                    {
+                        var image = Instantiate(ResultImagePrefab, ResultsLayout.transform);
+                        image.texture = DownloadHandlerTexture.GetContent(request.webRequest);
+                    }
+                };
             }
         });
     }

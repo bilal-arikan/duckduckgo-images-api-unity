@@ -10,9 +10,9 @@ using UnityEngine.Networking;
 
 namespace Arikan.Duckduckgo.Api
 {
-    public class Images : MonoBehaviour
+    public class ImagesApi : MonoBehaviour
     {
-        private static Images instance;
+        private static ImagesApi instance;
 
         private const string url = "https://duckduckgo.com/";
         private KeyValuePair<string, string> lastSearch; // keyword : token
@@ -31,7 +31,7 @@ namespace Arikan.Duckduckgo.Api
         {
             if (!instance)
             {
-                instance = new GameObject("DuckDuckGoAPI").AddComponent<Arikan.Duckduckgo.Api.Images>();
+                instance = new GameObject("DuckDuckGoAPI").AddComponent<Arikan.Duckduckgo.Api.ImagesApi>();
             }
             instance.SearchFromInstance(text, page, onCompleted);
         }

@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Arikan.Duckduckgo.Api
 {
     [Serializable]
-    public class ImageModel
+    public class ImageSummary
     {
         public int height = 1000;
         public int width = 837;
