@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿using System.Net;
+using System.Linq;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,21 +10,29 @@ public class ApiExample : MonoBehaviour
     public InputField SearchInput;
     public Button SearchButton;
     public LayoutGroup ResultsLayout;
-    public string ExampleSearch = "apple";
-    public Api api;
+    public Image ResultImagePrefab;
 
-    void Start()
+    private void Start()
     {
-        api = new GameObject("API").AddComponent<Api>();
+        SearchButton.onClick.AddListener(SendExample);
     }
 
-    [ContextMenu("Example")]
     void SendExample()
     {
+        foreach (Transform child in ResultsLayout.transform)
+            Destroy(child.gameObject);
+
         Debug.Log("Searching", this);
-        api.Search(ExampleSearch, 1, (result) =>
+
+        SearchButton.interactable = false;
+        Arikan.Duckduckgo.Api.Images.Search(SearchInput.text, 1, (result) =>
         {
+            SearchButton.interactable = true;
             Debug.Log(JsonUtility.ToJson(result.results[0], true), this);
+            foreach (var item in result.results.Take(12))
+            {
+                var image = Instantiate(ResultImagePrefab, ResultsLayout.transform);
+            }
         });
     }
 }
