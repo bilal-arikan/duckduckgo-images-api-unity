@@ -10,6 +10,13 @@ using UnityEngine.Networking;
 
 namespace Arikan.Duckduckgo.Api
 {
+    public enum SafeSearch
+    {
+        // Strict = 1, // Not Available yet
+        Moderate = -1,
+        Off = -2
+    }
+
     public class ImagesApi : MonoBehaviour
     {
         private static ImagesApi instance;
@@ -27,13 +34,15 @@ namespace Arikan.Duckduckgo.Api
         };
 
 
-        public static void Search(string text, int page, Action<ImageSearchResult> onCompleted)
+        public static void Search(string text, Action<ImageSearchResult> onCompleted)
+            => Search(text, SafeSearch.Moderate, onCompleted);
+        public static void Search(string text, SafeSearch safeSearch, Action<ImageSearchResult> onCompleted)
         {
             if (!instance)
             {
                 instance = new GameObject("DuckDuckGoAPI").AddComponent<Arikan.Duckduckgo.Api.ImagesApi>();
             }
-            instance.SearchFromInstance(text, page, onCompleted);
+            instance.SearchFromInstance(text, safeSearch, onCompleted);
         }
 
 
@@ -41,26 +50,29 @@ namespace Arikan.Duckduckgo.Api
         {
             instance = this;
         }
-        private void SearchFromInstance(string text, int page, Action<ImageSearchResult> onCompleted)
+        private void SearchFromInstance(string text, SafeSearch safeSearch, Action<ImageSearchResult> onCompleted)
         {
-            StartCoroutine(SearchCoRo(text, page, onCompleted));
+            StartCoroutine(SearchCoRo(text, safeSearch, onCompleted));
         }
-        private IEnumerator SearchCoRo(string keyword, int page, Action<ImageSearchResult> onCompleted)
+        private IEnumerator SearchCoRo(string keyword, SafeSearch safeSearch, Action<ImageSearchResult> onCompleted)
         {
             string token = lastSearch.Value;
             if (lastSearch.Key != keyword)
             {
-                yield return RequestToken(keyword, (t) => token = t);
+                yield return RequestToken(keyword, safeSearch, (t) => token = t);
                 lastSearch = new KeyValuePair<string, string>(keyword, token);
             }
 
             // Debug.Log("SrcOb:" + currentToken);
-            yield return RequestSearchResult(keyword, token, page, onCompleted);
+            yield return RequestSearchResult(keyword, token, safeSearch, onCompleted);
         }
 
-        private IEnumerator RequestToken(string keyword, Action<string> tokenCallback)
+        private IEnumerator RequestToken(string keyword, SafeSearch safeSearch, Action<string> tokenCallback)
         {
-            var ao = UnityWebRequest.Get(url + "?q=" + keyword).SendWebRequest();
+            var requestUrl = $"{url}?q={keyword}";
+            // Debug.Log(requestUrl);
+            var ao = UnityWebRequest.Get(requestUrl).SendWebRequest();
+
             yield return new WaitUntil(() => ao.isDone);
             if (ao.webRequest.isNetworkError || ao.webRequest.isHttpError)
             {
@@ -82,15 +94,15 @@ namespace Arikan.Duckduckgo.Api
             tokenCallback.Invoke(match.Groups[1].Value);
         }
 
-        private IEnumerator RequestSearchResult(string keyword, string token, int page, Action<ImageSearchResult> callback)
+        private IEnumerator RequestSearchResult(string keyword, string token, SafeSearch safeSearch, Action<ImageSearchResult> callback)
         {
             Dictionary<string, string> parameters = new Dictionary<string, string>(){
                 {"l", "us-en"},
                 {"o", "json"},
                 {"q", keyword},
                 {"vqd", token},
-                {"f", ",,,"},
-                {"p", "1"},
+                {"f", ",,,,,"},
+                {"p", safeSearch == SafeSearch.Off ? "-1" : "1"},
                 {"v7exp", "a"},
             };
             string requestUrl = url

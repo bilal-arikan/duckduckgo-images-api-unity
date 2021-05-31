@@ -27,7 +27,7 @@ public class ApiExample : MonoBehaviour
         Debug.Log($"Searching : {SearchInput.text}", this);
 
         SearchButton.interactable = false;
-        Arikan.Duckduckgo.Api.ImagesApi.Search(SearchInput.text, 1, (result) =>
+        Arikan.Duckduckgo.Api.ImagesApi.Search(SearchInput.text, Arikan.Duckduckgo.Api.SafeSearch.Off, (result) =>
         {
             SearchButton.interactable = true;
 
@@ -37,7 +37,7 @@ public class ApiExample : MonoBehaviour
                 return;
             }
 
-            Debug.Log(JsonUtility.ToJson(result.results[0], true), this);
+            Debug.Log("First Resutl:\n" + JsonUtility.ToJson(result.results[0], true), this);
             foreach (var item in result.results.Take(MaxResultCount))
             {
                 var request = UnityWebRequestTexture.GetTexture(item.thumbnail).SendWebRequest();
