@@ -35,14 +35,18 @@ namespace Arikan.Duckduckgo.Api
 
 
         public static void Search(string text, int pageNo, Action<ImageSearchResult> onCompleted)
-            => Search(text, SafeSearch.Moderate, pageNo, onCompleted);
-        public static void Search(string text, SafeSearch safeSearch, int pageNo, Action<ImageSearchResult> onCompleted)
+            => Search(text, SafeSearch.Moderate, pageNo, "us-en", onCompleted);
+        public static void Search(string text, SafeSearch safeSearch, int pageNo, string location, Action<ImageSearchResult> onCompleted)
         {
             if (!instance)
             {
                 instance = new GameObject("DuckDuckGoAPI").AddComponent<Arikan.Duckduckgo.Api.ImagesApi>();
             }
-            instance.SearchFromInstance(text, safeSearch, pageNo, onCompleted);
+            if(string.IsNullOrWhiteSpace(location))
+            {
+                location = "us-en";
+            }
+            instance.SearchFromInstance(text, safeSearch, pageNo, location, onCompleted);
         }
 
 
@@ -51,11 +55,11 @@ namespace Arikan.Duckduckgo.Api
             instance = this;
             DontDestroyOnLoad(gameObject);
         }
-        private void SearchFromInstance(string text, SafeSearch safeSearch, int pageNo, Action<ImageSearchResult> onCompleted)
+        private void SearchFromInstance(string text, SafeSearch safeSearch, int pageNo, string location, Action<ImageSearchResult> onCompleted)
         {
-            StartCoroutine(SearchCoRo(text, safeSearch, pageNo, onCompleted));
+            StartCoroutine(SearchCoRo(text, safeSearch, pageNo, location, onCompleted));
         }
-        private IEnumerator SearchCoRo(string keyword, SafeSearch safeSearch, int pageNo, Action<ImageSearchResult> onCompleted)
+        private IEnumerator SearchCoRo(string keyword, SafeSearch safeSearch, int pageNo, string location, Action<ImageSearchResult> onCompleted)
         {
             string token = lastSearch.Value;
             if (lastSearch.Key != keyword)
@@ -66,7 +70,7 @@ namespace Arikan.Duckduckgo.Api
             }
 
             // Debug.Log("SrcOb:" + currentToken);
-            yield return RequestSearchResult(keyword, token, safeSearch, pageNo, onCompleted);
+            yield return RequestSearchResult(keyword, token, safeSearch, pageNo, location, onCompleted);
         }
 
         private IEnumerator RequestToken(string keyword, SafeSearch safeSearch, Action<string> tokenCallback)
@@ -96,11 +100,11 @@ namespace Arikan.Duckduckgo.Api
             tokenCallback.Invoke(match.Groups[1].Value);
         }
 
-        private IEnumerator RequestSearchResult(string keyword, string token, SafeSearch safeSearch, int pageNo, Action<ImageSearchResult> callback)
+        private IEnumerator RequestSearchResult(string keyword, string token, SafeSearch safeSearch, int pageNo, string location, Action<ImageSearchResult> callback)
         {
             pageNo = Mathf.Clamp(pageNo, 1, int.MaxValue);
             Dictionary<string, string> parameters = new Dictionary<string, string>(){
-                {"l", "us-en"},
+                {"l", location},
                 {"o", "json"},
                 {"q", keyword},
                 {"vqd", token},

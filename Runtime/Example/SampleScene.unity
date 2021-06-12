@@ -771,6 +771,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowMaxResultAmount: 24
+  location: us-en
   SearchInput: {fileID: 313931728}
   SearchButton: {fileID: 1956213752}
   ResultsLayout: {fileID: 322455885}

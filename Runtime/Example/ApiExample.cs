@@ -9,6 +9,8 @@ using Arikan.Duckduckgo.Api;
 public class ApiExample : MonoBehaviour
 {
     public int ShowMaxResultAmount = 15;
+    public string location = "us-en";
+    [Space]
     public InputField SearchInput;
     public Button SearchButton;
     public LayoutGroup ResultsLayout;
@@ -40,20 +42,20 @@ public class ApiExample : MonoBehaviour
         SearchButton.interactable = false;
         lastPageNo = 1;
         ClearResults();
-        ImagesApi.Search(SearchInput.text, SafeSearch.Off, lastPageNo, OnSearchCallback);
+        ImagesApi.Search(SearchInput.text, SafeSearch.Off, lastPageNo, location, OnSearchCallback);
     }
 
     void NextPage()
     {
         lastPageNo++;
         ClearResults();
-        ImagesApi.Search(SearchInput.text, SafeSearch.Off, lastPageNo, OnSearchCallback);
+        ImagesApi.Search(SearchInput.text, SafeSearch.Off, lastPageNo, location, OnSearchCallback);
     }
     void PreviousPage()
     {
         lastPageNo--;
         ClearResults();
-        ImagesApi.Search(SearchInput.text, SafeSearch.Off, lastPageNo, OnSearchCallback);
+        ImagesApi.Search(SearchInput.text, SafeSearch.Off, lastPageNo, location, OnSearchCallback);
     }
 
     void ClearResults(){
