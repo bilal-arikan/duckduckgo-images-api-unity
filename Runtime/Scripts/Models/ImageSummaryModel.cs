@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Arikan.Duckduckgo.Api
+namespace Arikan.Models
 {
     [Serializable]
     public class ImageSummary

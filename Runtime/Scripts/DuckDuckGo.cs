@@ -1,15 +1,16 @@
-﻿using System.Linq;
-using System.Text.RegularExpressions;
-using System.Net;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
-using System;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace Arikan.Duckduckgo.Api
+namespace Arikan
 {
+    using Arikan.Models;
+
     public enum SafeSearch
     {
         // Strict = 1, // Not Available yet
@@ -17,9 +18,9 @@ namespace Arikan.Duckduckgo.Api
         Off = -2
     }
 
-    public class ImagesApi : MonoBehaviour
+    public class DuckDuckGo : MonoBehaviour
     {
-        private static ImagesApi instance;
+        private static DuckDuckGo instance;
 
         private const string url = "https://duckduckgo.com/";
         private KeyValuePair<string, string> lastSearch; // keyword : token
@@ -40,9 +41,9 @@ namespace Arikan.Duckduckgo.Api
         {
             if (!instance)
             {
-                instance = new GameObject("DuckDuckGoAPI").AddComponent<Arikan.Duckduckgo.Api.ImagesApi>();
+                instance = new GameObject("DuckDuckGoAPI").AddComponent<Arikan.DuckDuckGo>();
             }
-            if(string.IsNullOrWhiteSpace(location))
+            if (string.IsNullOrWhiteSpace(location))
             {
                 location = "us-en";
             }

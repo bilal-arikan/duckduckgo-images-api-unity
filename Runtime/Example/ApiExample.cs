@@ -1,98 +1,104 @@
-﻿using System.Linq;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.Networking;
-using Arikan.Duckduckgo.Api;
+using UnityEngine.UI;
 
-public class ApiExample : MonoBehaviour
+namespace Arikan.Example
 {
-    public int ShowMaxResultAmount = 15;
-    public string location = "us-en";
-    [Space]
-    public InputField SearchInput;
-    public Button SearchButton;
-    public LayoutGroup ResultsLayout;
-    public RawImage ResultImagePrefab;
-    [Header("Paging")]
-    public Button prevButton;
-    public Button nextButton;
-    public Text pageNo;
-    [Space]
-    public int lastPageNo;
+    using Arikan.Models;
 
-    private List<RawImage> resultImages = new List<RawImage>();
-
-    private void Start()
+    public class ApiExample : MonoBehaviour
     {
-        SearchButton.onClick.AddListener(SendExample);
-        nextButton.onClick.AddListener(NextPage);
-        prevButton.onClick.AddListener(PreviousPage);
-    }
+        public int ShowMaxResultAmount = 15;
+        public string location = "us-en";
+        [Space]
+        public InputField SearchInput;
+        public Button SearchButton;
+        public LayoutGroup ResultsLayout;
+        public RawImage ResultImagePrefab;
+        [Header("Paging")]
+        public Button prevButton;
+        public Button nextButton;
+        public Text pageNo;
+        [Space]
+        public int lastPageNo;
 
-    void SendExample()
-    {
-        foreach (Transform child in ResultsLayout.transform)
-            Destroy(child.gameObject);
-        Resources.UnloadUnusedAssets();
+        private List<RawImage> resultImages = new List<RawImage>();
 
-        Debug.Log($"Searching : {SearchInput.text}", this);
-
-        SearchButton.interactable = false;
-        lastPageNo = 1;
-        ClearResults();
-        ImagesApi.Search(SearchInput.text, SafeSearch.Off, lastPageNo, location, OnSearchCallback);
-    }
-
-    void NextPage()
-    {
-        lastPageNo++;
-        ClearResults();
-        ImagesApi.Search(SearchInput.text, SafeSearch.Off, lastPageNo, location, OnSearchCallback);
-    }
-    void PreviousPage()
-    {
-        lastPageNo--;
-        ClearResults();
-        ImagesApi.Search(SearchInput.text, SafeSearch.Off, lastPageNo, location, OnSearchCallback);
-    }
-
-    void ClearResults(){
-        foreach (var img in resultImages)
+        private void Start()
         {
-            Destroy(img.gameObject);
-        }
-        resultImages.Clear();
-    }
-
-    void OnSearchCallback(ImageSearchResult result)
-    {
-        SearchButton.interactable = true;
-        prevButton.interactable = lastPageNo > 1;
-        pageNo.text = lastPageNo.ToString("00");
-
-        if (result == null)
-        {
-            Debug.LogError("Result Null", this);
-            return;
+            SearchButton.onClick.AddListener(SendExample);
+            nextButton.onClick.AddListener(NextPage);
+            prevButton.onClick.AddListener(PreviousPage);
         }
 
-        Debug.Log($"Result Count: " + result.results.Count, this);
-        Debug.Log("First Result:\n" + JsonUtility.ToJson(result.results[0], true), this);
-        foreach (var item in result.results.Take(ShowMaxResultAmount))
+        void SendExample()
         {
-            var request = UnityWebRequestTexture.GetTexture(item.thumbnail).SendWebRequest();
-            request.completed +=
-            (ao) =>
+            foreach (Transform child in ResultsLayout.transform)
+                Destroy(child.gameObject);
+            Resources.UnloadUnusedAssets();
+
+            Debug.Log($"Searching : {SearchInput.text}", this);
+
+            SearchButton.interactable = false;
+            lastPageNo = 1;
+            ClearResults();
+            DuckDuckGo.Search(SearchInput.text, SafeSearch.Off, lastPageNo, location, OnSearchCallback);
+        }
+
+        void NextPage()
+        {
+            lastPageNo++;
+            ClearResults();
+            DuckDuckGo.Search(SearchInput.text, SafeSearch.Off, lastPageNo, location, OnSearchCallback);
+        }
+        void PreviousPage()
+        {
+            lastPageNo--;
+            ClearResults();
+            DuckDuckGo.Search(SearchInput.text, SafeSearch.Off, lastPageNo, location, OnSearchCallback);
+        }
+
+        void ClearResults()
+        {
+            foreach (var img in resultImages)
             {
-                if (ao.isDone)
+                Destroy(img.gameObject);
+            }
+            resultImages.Clear();
+        }
+
+        void OnSearchCallback(ImageSearchResult result)
+        {
+            SearchButton.interactable = true;
+            prevButton.interactable = lastPageNo > 1;
+            pageNo.text = lastPageNo.ToString("00");
+
+            if (result == null)
+            {
+                Debug.LogError("Result Null", this);
+                return;
+            }
+
+            Debug.Log($"Result Count: " + result.results.Count, this);
+            Debug.Log("First Result:\n" + JsonUtility.ToJson(result.results[0], true), this);
+            foreach (var item in result.results.Take(ShowMaxResultAmount))
+            {
+                var request = UnityWebRequestTexture.GetTexture(item.thumbnail).SendWebRequest();
+                request.completed +=
+                (ao) =>
                 {
-                    var image = Instantiate(ResultImagePrefab, ResultsLayout.transform);
-                    image.texture = DownloadHandlerTexture.GetContent(request.webRequest);
-                    resultImages.Add(image);
-                }
-            };
+                    if (ao.isDone)
+                    {
+                        var image = Instantiate(ResultImagePrefab, ResultsLayout.transform);
+                        image.texture = DownloadHandlerTexture.GetContent(request.webRequest);
+                        resultImages.Add(image);
+                    }
+                };
+            }
         }
     }
+
 }

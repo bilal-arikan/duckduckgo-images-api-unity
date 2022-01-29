@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Arikan.Duckduckgo.Api
+namespace Arikan.Models
 {
     [Serializable]
     public class ImageSearchResult

@@ -1,10 +1,10 @@
 {
-  "name": "com.arikan.duckduckgo.api.images",
+  "name": "com.arikan.duckduckgo.images",
   "displayName": "DuckDuckGo Images API",
   "version": "1.0.0",
-  "unity": "2019.1",
+  "unity": "2018.1",
   "author": "Bilal Arikan",
-  "description": "DuckDuckGo Images API Codes",
+  "description": "DuckDuckGo Images API",
   "repository": {
     "type": "git",
     "url": "https://github.com/bilal-arikan/duckduckgo-images-api-unity"
