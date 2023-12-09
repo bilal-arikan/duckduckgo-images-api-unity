@@ -36,29 +36,28 @@ namespace Arikan.Example
 
         void SendExample()
         {
-            foreach (Transform child in ResultsLayout.transform)
-                Destroy(child.gameObject);
-            Resources.UnloadUnusedAssets();
-
+            if (string.IsNullOrWhiteSpace(SearchInput.text))
+            {
+                Debug.LogError("Search input cannot be empty or null.", this);
+                return;
+            }
+        
             Debug.Log($"Searching : {SearchInput.text}", this);
-
+        
             SearchButton.interactable = false;
             lastPageNo = 1;
-            ClearResults();
-            DuckDuckGo.Search(SearchInput.text, SafeSearch.Off, lastPageNo, location, OnSearchCallback);
+            SendSearchRequest();
         }
 
         void NextPage()
         {
             lastPageNo++;
-            ClearResults();
-            DuckDuckGo.Search(SearchInput.text, SafeSearch.Off, lastPageNo, location, OnSearchCallback);
+            SendSearchRequest();
         }
         void PreviousPage()
         {
             lastPageNo--;
-            ClearResults();
-            DuckDuckGo.Search(SearchInput.text, SafeSearch.Off, lastPageNo, location, OnSearchCallback);
+            SendSearchRequest();
         }
 
         void ClearResults()
@@ -71,17 +70,28 @@ namespace Arikan.Example
         }
 
         void OnSearchCallback(ImageSearchResult result)
+void SendSearchRequest()
+{
+    ClearResults();
+    DuckDuckGo.Search(SearchInput.text, SafeSearch.Off, lastPageNo, location, OnSearchCallback);
+}
         {
             SearchButton.interactable = true;
             prevButton.interactable = lastPageNo > 1;
             pageNo.text = lastPageNo.ToString("00");
-
+        
             if (result == null)
             {
-                Debug.LogError("Result Null", this);
+                Debug.LogError("Search failed. Please try again.", this);
                 return;
             }
-
+        
+            if (result.results == null || result.results.Count == 0)
+            {
+                Debug.LogError("No results found.", this);
+                return;
+            }
+        
             Debug.Log($"Result Count: " + result.results.Count, this);
             Debug.Log("First Result:\n" + JsonUtility.ToJson(result.results[0], true), this);
             foreach (var item in result.results.Take(ShowMaxResultAmount))
