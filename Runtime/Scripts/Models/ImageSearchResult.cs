@@ -7,12 +7,25 @@ namespace Arikan.Models
     [Serializable]
     public class ImageSearchResult
     {
-        public Dictionary<string, string> vqd;
-        public List<ImageSummary> results;
-        public string next = "i.js?q=apple&o=json&p=1&s=100&u=bing&f=,,,&l=us-en";
-        public string query = "apple";
-        public string queryEncoded = "apple";
-        public string ads = null;
-        public string response_type = "places";
+        // A dictionary containing the query validation details
+        public Dictionary<string, string> QueryValidationDetails;
+        
+        // A list of image search results
+        public List<ImageSummary> Results;
+        
+        // The next page URL for the search results
+        public string NextPageUrl;
+        
+        // The search query
+        public string SearchQuery;
+        
+        // The encoded search query
+        public string EncodedSearchQuery;
+        
+        // The ads related to the search query
+        public string Ads;
+        
+        // The type of the response received
+        public string ResponseType;
     }
 }

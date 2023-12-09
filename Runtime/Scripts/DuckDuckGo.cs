@@ -47,7 +47,7 @@ namespace Arikan
             {
                 location = "us-en";
             }
-            instance.SearchFromInstance(text, safeSearch, pageNo, location, onCompleted);
+            instance.StartCoroutine(instance.SearchCoRo(text, safeSearch, pageNo, location, onCompleted));
         }
 
 
@@ -57,9 +57,6 @@ namespace Arikan
             DontDestroyOnLoad(gameObject);
         }
         private void SearchFromInstance(string text, SafeSearch safeSearch, int pageNo, string location, Action<ImageSearchResult> onCompleted)
-        {
-            StartCoroutine(SearchCoRo(text, safeSearch, pageNo, location, onCompleted));
-        }
         private IEnumerator SearchCoRo(string keyword, SafeSearch safeSearch, int pageNo, string location, Action<ImageSearchResult> onCompleted)
         {
             string token = lastSearch.Value;
@@ -101,7 +98,7 @@ namespace Arikan
             tokenCallback.Invoke(match.Groups[1].Value);
         }
 
-        private IEnumerator RequestSearchResult(string keyword, string token, SafeSearch safeSearch, int pageNo, string location, Action<ImageSearchResult> callback)
+        private string BuildRequestUrl(string keyword, string token, SafeSearch safeSearch, int pageNo, string location)
         {
             pageNo = Mathf.Clamp(pageNo, 1, int.MaxValue);
             Dictionary<string, string> parameters = new Dictionary<string, string>(){
@@ -114,29 +111,26 @@ namespace Arikan
                 {"p", safeSearch == SafeSearch.Off ? "-1" : "1"},
                 {"v7exp", "a"},
             };
-            string requestUrl = url
-                + "i.js?"
-                + string.Join("&", parameters.Select(kv => kv.Key + "=" + kv.Value));
-            // Debug.Log(requestUrl);
-
+            return url + "i.js?" + string.Join("&", parameters.Select(kv => kv.Key + "=" + kv.Value));
+        }
+        
+        private IEnumerator RequestSearchResult(string keyword, string token, SafeSearch safeSearch, int pageNo, string location, Action<ImageSearchResult> callback)
+        {
+            string requestUrl = BuildRequestUrl(keyword, token, safeSearch, pageNo, location);
             var request = UnityWebRequest.Get(requestUrl);
-            foreach (var kv in headers)
-            {
-                // Debug.Log(kv.Key);
-                request.SetRequestHeader(kv.Key, kv.Value);
-            }
-            var ao = request.SendWebRequest();
-
+            SetRequestHeaders(request);
+            var ao = SendRequest(request);
+            
             yield return new WaitUntil(() => ao.isDone);
             if (ao.webRequest.isNetworkError || ao.webRequest.isHttpError)
             {
                 Debug.LogError("Searching Failed ! " + ao.webRequest.error);
                 isLastRequestSuccessfull = false;
-                callback.Invoke(null);
+                callback.Invoke(new ImageSearchResult { error = ao.webRequest.error });
                 yield break;
             }
             isLastRequestSuccessfull = true;
-
+            
             // Debug.Log(ao.webRequest.downloadHandler.text);
             var result = JsonUtility.FromJson<ImageSearchResult>(ao.webRequest.downloadHandler.text);
             callback.Invoke(result);
